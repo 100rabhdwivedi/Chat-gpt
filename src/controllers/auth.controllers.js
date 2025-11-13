@@ -19,7 +19,7 @@ module.exports.register= async(req,res)=>{
         password:hashedPassword
     })
 
-    const token = jwt.sign({id:user._id},process.env.JWT_SECRET)
+    const token = jwt.sign({id:user._id},process.env.JWT_SECRET,{expiresIn:"24h"})
     res.cookie("token",token)
 
     return res.status(201).json({
@@ -28,6 +28,38 @@ module.exports.register= async(req,res)=>{
             fullName:fullName,
             email:email,
             id:user._id    
+        }
+    })
+}
+
+module.exports.login = async (req,res) =>{
+
+    const {email,password} = req.body
+    let user =await userModel.findOne({email})
+    if(!user) {
+        return res.status(401).json({
+        message:"Invalid email or password:"
+    })}
+
+    const isvalidPass = await bcrypt.compare(password,user.password)
+
+    if(!isvalidPass){
+        return res.status(401).json({
+            message:"Invalid email or password:"
+        })
+    }
+
+    const token = jwt.sign({id:user._id},process.env.JWT_SECRET,{expiresIn:"24h"})
+
+    res.cookie("token",token)
+
+    return res.status(200).json({
+        message:"Loginn successfully:",
+        token,
+        user:{
+            id:user._id,
+            email:user.email,
+            fullName:user.fullName
         }
     })
 }
