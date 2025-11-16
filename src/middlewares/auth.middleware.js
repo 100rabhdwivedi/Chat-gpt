@@ -20,7 +20,8 @@ const authUser = async(req,res,next)=>{
             })
         }
 
-        const user = await userModel.findById(decoded.id)
+        const user = await userModel.findById(decoded.id).select("-password")
+
 
         if(!user){
             return res.status(401).json({
