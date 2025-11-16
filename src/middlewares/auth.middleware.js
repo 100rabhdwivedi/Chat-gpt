@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken")
-const userModel = require("../models/user.model")
+const {userModel} = require("../models/user.model")
 
 const authUser = async(req,res,next)=>{
 
@@ -19,10 +19,9 @@ const authUser = async(req,res,next)=>{
                 message:"Invalid token:"
             })
         }
-
-        const user = await userModel.findById(decoded.id).select("-password")
-
-
+        console.log(decoded);
+        
+        const user = await userModel.findById(decoded.id)
         if(!user){
             return res.status(401).json({
                 message:"Unauthenticated user:"
@@ -32,6 +31,8 @@ const authUser = async(req,res,next)=>{
         next()
 
     } catch (error) {
+        console.log(error);
+        
         return res.status(401).json({
                 message:"unauthenticated user:"
             })

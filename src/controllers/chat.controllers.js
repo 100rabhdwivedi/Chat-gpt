@@ -3,7 +3,8 @@ const chatModel = require("../models/chat.model")
 module.exports.createChat = async (req,res)=>{
     const {title} = req.body ||{}
     const user = req.user._id
-
+    console.log(user);
+    
     if(!title){
         return res.status(400).json({
             message:"Missing required parameter",

@@ -41,6 +41,9 @@ const validateUser = (userData) => {
     });
     return schema.validate(userData);
 };
+const userModel = mongoose.model('User', userSchema)
 
-
-module.exports = {userModel: mongoose.model('User', userSchema),validateUser,};
+module.exports = {
+    userModel,
+    validateUser
+}
