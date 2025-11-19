@@ -3,6 +3,7 @@ const cookie = require("cookie");
 const jwt = require("jsonwebtoken");
 const { userModel } = require("../models/user.model");
 const main = require('../services/ai.service')
+const {createMessage} = require('../handlers/message.handler')
 
 function initSocket(httpserver) {
     const io = new Server(httpserver, {});
@@ -36,10 +37,28 @@ function initSocket(httpserver) {
 
     io.on("connection", (socket) => {
         socket.on("ai-message", async (data) => {
-            const response = await main(data)
-            console.log(response);
+            const payLoad = {
+                content:data.content,
+                chat:data.chat,
+                user:socket.user._id,
+                role : 'user'
+            }
+            const userMessage = await createMessage(payLoad)
+            if(userMessage.error){
+                return  socket.emit("message-error", userMessage.error)
+            }
 
-            socket.emit("ai-response", response)
+            const response = await main(userMessage)
+            payLoad.role = 'model'
+            payLoad.content = response
+
+            const aiMessage = await createMessage(payLoad)
+
+            socket.emit("ai-response", aiMessage.content)
+
+            if(aiMessage.error){
+                return socket.emit("message-error", aiMessage.error)
+            }
         })
     });
 
