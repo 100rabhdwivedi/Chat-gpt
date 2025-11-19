@@ -6,16 +6,15 @@ const groq = new Groq({
 
 async function main(payLoad) {
     const chatCompletion = await getGroqChatCompletion(payLoad);
+    console.log(payLoad);
+    
     // Print the completion returned by the LLM.
     return chatCompletion.choices[0]?.message?.content || "";
 }
 
 async function getGroqChatCompletion(payLoad) {
     return groq.chat.completions.create({
-        messages: [{
-            role: payLoad.role,
-            content:payLoad.content
-        }, ],
+        messages: payLoad,
         model: "openai/gpt-oss-20b",
     });
 }

@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const { userModel } = require("../models/user.model");
 const main = require('../services/ai.service')
 const {createMessage} = require('../handlers/message.handler')
+const {fetchHistory} = require('../handlers/message.handler')
 
 function initSocket(httpserver) {
     const io = new Server(httpserver, {});
@@ -48,8 +49,15 @@ function initSocket(httpserver) {
                 return  socket.emit("message-error", userMessage.error)
             }
 
-            const response = await main(userMessage)
-            payLoad.role = 'model'
+            const chatHistory = await fetchHistory(payLoad.chat)
+
+            if(chatHistory.error){
+                return  socket.emit("chatHistory-error", chatHistory.error)
+
+            }
+
+            const response = await main(chatHistory)
+            payLoad.role = 'assistant'
             payLoad.content = response
 
             const aiMessage = await createMessage(payLoad)

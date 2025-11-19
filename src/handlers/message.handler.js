@@ -8,3 +8,18 @@ module.exports.createMessage = async(payLoad) =>{
         return {error:error.message}
     }
 }
+
+module.exports.fetchHistory = async (chatId) =>{
+    try {
+        const chatHistory = await messageModel.find({chat:chatId})
+        return chatHistory.map((message)=>{
+            return {
+                role:message.role,
+                content:message.content
+            }
+        })
+        
+    } catch (error) {
+        return {error:error.message}
+    }
+}
