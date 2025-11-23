@@ -1,22 +1,13 @@
-const Groq = require("groq-sdk");
+const {GoogleGenAI}= require("@google/genai")
 
-const groq = new Groq({
-    apiKey: process.env.GROQ_API_KEY
-});
+const ai = new GoogleGenAI({});
 
 async function main(payLoad) {
-    const chatCompletion = await getGroqChatCompletion(payLoad);
-    console.log(payLoad);
-    
-    // Print the completion returned by the LLM.
-    return chatCompletion.choices[0]?.message?.content || "";
-}
-
-async function getGroqChatCompletion(payLoad) {
-    return groq.chat.completions.create({
-        messages: payLoad,
-        model: "openai/gpt-oss-20b",
+    const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: payLoad,
     });
+    return response.text;
 }
 
-module.exports = main
+module.exports ={main}

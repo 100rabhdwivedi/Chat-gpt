@@ -15,7 +15,7 @@ module.exports.fetchHistory = async (chatId) =>{
         return chatHistory.map((message)=>{
             return {
                 role:message.role,
-                content:message.content
+                parts:[{text:message.content}]
             }
         })
         

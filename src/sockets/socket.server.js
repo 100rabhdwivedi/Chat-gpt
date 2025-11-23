@@ -2,7 +2,7 @@ const {Server} = require("socket.io");
 const cookie = require("cookie");
 const jwt = require("jsonwebtoken");
 const { userModel } = require("../models/user.model");
-const main = require('../services/ai.service')
+const {main} = require('../services/ai.service')
 const {createMessage} = require('../handlers/message.handler')
 const {fetchHistory} = require('../handlers/message.handler')
 
@@ -13,8 +13,6 @@ function initSocket(httpserver) {
         try {
             const rawCookies = socket.handshake.headers?.cookie || "";
             const cookies = cookie.parse(rawCookies);
-
-            console.log(cookies);
 
             if (!cookies.token) {
                 next(new Error("Authentication Error : No token provided"))
@@ -57,7 +55,7 @@ function initSocket(httpserver) {
             }
 
             const response = await main(chatHistory)
-            payLoad.role = 'assistant'
+            payLoad.role = 'model'
             payLoad.content = response
 
             const aiMessage = await createMessage(payLoad)
