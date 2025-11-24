@@ -10,4 +10,18 @@ async function main(payLoad) {
     return response.text;
 }
 
-module.exports ={main}
+async function generateVector(payLoad) {
+
+
+    const response = await ai.models.embedContent({
+        model: 'gemini-embedding-001',
+        contents: payLoad,
+        config:{
+            outputDimensionality:1024
+        }
+    });
+
+    return response.embeddings[0].values
+}
+
+module.exports ={main,generateVector}

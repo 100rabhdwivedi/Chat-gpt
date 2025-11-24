@@ -1,10 +1,11 @@
-const {Server} = require("socket.io");
+const { Server } = require("socket.io");
 const cookie = require("cookie");
 const jwt = require("jsonwebtoken");
-const { userModel } = require("../models/user.model");
-const {main} = require('../services/ai.service')
+const {userModel} = require("../models/user.model");
+const {main,generateVector} = require('../services/ai.service')
 const {createMessage} = require('../handlers/message.handler')
 const {fetchHistory} = require('../handlers/message.handler')
+const {createMemory, queryMemory} = require("../services/vector.service")
 
 function initSocket(httpserver) {
     const io = new Server(httpserver, {});
@@ -37,20 +38,36 @@ function initSocket(httpserver) {
     io.on("connection", (socket) => {
         socket.on("ai-message", async (data) => {
             const payLoad = {
-                content:data.content,
-                chat:data.chat,
-                user:socket.user._id,
-                role : 'user'
+                content: data.content,
+                chat: data.chat,
+                user: socket.user._id,
+                role: 'user'
             }
+
             const userMessage = await createMessage(payLoad)
-            if(userMessage.error){
-                return  socket.emit("message-error", userMessage.error)
+            if (userMessage.error) {
+                return socket.emit("message-error", userMessage.error)
             }
+
+            const vectors = await generateVector(data.content)
+
+            await createMemory({
+                vectors,
+                messageId: userMessage._id,
+                metadata: {
+                    chat: data.chat,
+                    user: socket.user._id,
+                    text:data.content
+                }
+            })
+
+            console.log(await queryMemory({queryVector:vectors,limit:3,metadata:{}}));
+            
 
             const chatHistory = await fetchHistory(payLoad.chat)
 
-            if(chatHistory.error){
-                return  socket.emit("chatHistory-error", chatHistory.error)
+            if (chatHistory.error) {
+                return socket.emit("chatHistory-error", chatHistory.error)
 
             }
 
@@ -60,9 +77,21 @@ function initSocket(httpserver) {
 
             const aiMessage = await createMessage(payLoad)
 
+            const resVector = await generateVector(chatHistory)
+
+            await createMemory({
+                vectors,
+                messageId: aiMessage._id,
+                metadata: {
+                    chat: data.chat,
+                    user: socket.user._id,
+                    text:response
+                }
+            })
+
             socket.emit("ai-response", aiMessage.content)
 
-            if(aiMessage.error){
+            if (aiMessage.error) {
                 return socket.emit("message-error", aiMessage.error)
             }
         })
