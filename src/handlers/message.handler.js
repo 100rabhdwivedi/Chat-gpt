@@ -11,7 +11,7 @@ module.exports.createMessage = async(payLoad) =>{
 
 module.exports.fetchHistory = async (chatId) =>{
     try {
-        const chatHistory = await messageModel.find({chat:chatId})
+        const chatHistory = await messageModel.find({chat:chatId}).limit(20).lean()
         return chatHistory.map((message)=>{
             return {
                 role:message.role,

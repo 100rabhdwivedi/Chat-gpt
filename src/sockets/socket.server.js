@@ -61,7 +61,7 @@ function initSocket(httpserver) {
                 }
             })
 
-            console.log(await queryMemory({queryVector:vectors,limit:3,metadata:{}}));
+            const memory = await queryMemory({queryVector:vectors,limit:3,metadata:{user:socket.user._id}})
             
 
             const chatHistory = await fetchHistory(payLoad.chat)
@@ -71,7 +71,19 @@ function initSocket(httpserver) {
 
             }
 
-            const response = await main(chatHistory)
+            const stm = chatHistory
+            const ltm = [
+                {
+                    role:"user",
+                    parts:[{
+                        text:`These are some previous message from the chat use then to get response
+                        ${memory.map((item) => item.metadata.text).join('\n')}
+                        `
+                    }]
+                }
+            ]
+
+            const response = await main([...ltm,...stm])
             payLoad.role = 'model'
             payLoad.content = response
 
