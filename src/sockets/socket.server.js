@@ -44,14 +44,17 @@ function initSocket(httpserver) {
                 role: 'user'
             }
 
-            const userMessage = await createMessage(payLoad)
+            const [userMessage,vectors] = await Promise.all([
+                createMessage(payLoad),generateVector(data.content)
+            ]) 
+
+        
             if (userMessage.error) {
                 return socket.emit("message-error", userMessage.error)
             }
-
-            const vectors = await generateVector(data.content)
-
-            await createMemory({
+            const [memory,saved,chatHistory] = await Promise.all([
+                queryMemory({queryVector:vectors,limit:3,metadata:{user:socket.user._id}}),
+                createMemory({
                 vectors,
                 messageId: userMessage._id,
                 metadata: {
@@ -59,12 +62,10 @@ function initSocket(httpserver) {
                     user: socket.user._id,
                     text:data.content
                 }
-            })
+            }),
+            fetchHistory(payLoad.chat)
+            ])
 
-            const memory = await queryMemory({queryVector:vectors,limit:3,metadata:{user:socket.user._id}})
-            
-
-            const chatHistory = await fetchHistory(payLoad.chat)
 
             if (chatHistory.error) {
                 return socket.emit("chatHistory-error", chatHistory.error)
@@ -87,12 +88,14 @@ function initSocket(httpserver) {
             payLoad.role = 'model'
             payLoad.content = response
 
-            const aiMessage = await createMessage(payLoad)
+            const [aiMessage,resVector] = await Promise.all([
+                createMessage(payLoad),
+                generateVector(chatHistory)
+            ])
 
-            const resVector = await generateVector(chatHistory)
 
             await createMemory({
-                vectors,
+                vectors:resVector,
                 messageId: aiMessage._id,
                 metadata: {
                     chat: data.chat,
