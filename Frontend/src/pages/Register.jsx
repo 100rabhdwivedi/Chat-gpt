@@ -1,0 +1,142 @@
+import React from "react";
+import { useForm } from "react-hook-form";
+import axios from 'axios'
+import {toast} from 'react-hot-toast'
+import { useNavigate } from "react-router-dom";
+
+const Register = () => {
+    const navigate = useNavigate()
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+    } = useForm();
+
+    const onSubmit = async (data) => {
+        data.fullName = {firstName: data.firstName, lastName: data.lastName}
+        delete data.firstName,
+        delete data.lastName
+
+        try {
+            const res = await axios.post("http://localhost:8000/api/auth/register", data, {withCredentials: true})
+            if(res.status == 201){
+                toast.success("User register successfully")
+                navigate("/")
+            }
+        } catch (err) {
+            console.log(err);
+            
+            const message = err?.response?.data?.message || "somenthing went wrong"
+            toast.error(message)
+        }
+    };
+
+    return (
+        <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-[#0a0a0a] via-[#0f0f0f] to-[#1a1a1a] px-4">
+
+            <div className="relative w-full max-w-sm p-0.5 rounded-2xl bg-linear-to-br from-white/10 to-white/5 backdrop-blur-xl shadow-[0_8px_40px_rgba(0,0,0,0.6)]">
+
+                <div className="bg-black/40 p-8 rounded-2xl border border-white/10">
+
+                    <h2 className="text-3xl font-semibold text-white text-center mb-6 tracking-tight">
+                        Create Account ✨
+                    </h2>
+
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+
+                        {/* First Name */}
+                        <div>
+                            <label className="block mb-1 text-gray-300 font-medium text-sm">First Name</label>
+                            <input
+                                type="text"
+                                className={`w-full p-3 rounded-lg bg-white/10 text-white placeholder-gray-400 outline-none border 
+                ${errors.firstName ? "border-red-500" : "border-white/20"} 
+                focus:border-blue-500 transition-all duration-300`}
+                                placeholder="Enter your first name"
+                                {...register("firstName", { required: "First name is required" })}
+                            />
+                            {errors.firstName && (
+                                <p className="text-red-400 text-sm mt-1">{errors.firstName.message}</p>
+                            )}
+                        </div>
+
+                        {/* Last Name */}
+                        <div>
+                            <label className="block mb-1 text-gray-300 font-medium text-sm">Last Name</label>
+                            <input
+                                type="text"
+                                className={`w-full p-3 rounded-lg bg-white/10 text-white placeholder-gray-400 outline-none border 
+                ${errors.lastName ? "border-red-500" : "border-white/20"} 
+                focus:border-blue-500 transition-all duration-300`}
+                                placeholder="Enter your last name"
+                                {...register("lastName", { required: "Last name is required" })}
+                            />
+                            {errors.lastName && (
+                                <p className="text-red-400 text-sm mt-1">{errors.lastName.message}</p>
+                            )}
+                        </div>
+
+                        {/* Email */}
+                        <div>
+                            <label className="block mb-1 text-gray-300 font-medium text-sm">Email</label>
+                            <input
+                                type="email"
+                                className={`w-full p-3 rounded-lg bg-white/10 text-white placeholder-gray-400 outline-none border 
+                ${errors.email ? "border-red-500" : "border-white/20"} 
+                focus:border-blue-500 transition-all duration-300`}
+                                placeholder="Enter your email"
+                                {...register("email", {
+                                    required: "Email is required",
+                                    pattern: {
+                                        value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                                        message: "Enter a valid email",
+                                    },
+                                })}
+                            />
+                            {errors.email && (
+                                <p className="text-red-400 text-sm mt-1">{errors.email.message}</p>
+                            )}
+                        </div>
+
+                        {/* Password */}
+                        <div>
+                            <label className="block mb-1 text-gray-300 font-medium text-sm">Password</label>
+                            <input
+                                type="password"
+                                className={`w-full p-3 rounded-lg bg-white/10 text-white placeholder-gray-400 outline-none border 
+                ${errors.password ? "border-red-500" : "border-white/20"} 
+                focus:border-blue-500 transition-all duration-300`}
+                                placeholder="Enter your password"
+                                {...register("password", {
+                                    required: "Password is required",
+                                    minLength: { value: 6, message: "Minimum 6 characters required" },
+                                })}
+                            />
+                            {errors.password && (
+                                <p className="text-red-400 text-sm mt-1">{errors.password.message}</p>
+                            )}
+                        </div>
+
+                        {/* Button */}
+                        <button
+                            type="submit"
+                            className="w-full bg-linear-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 
+                transition-all p-3 rounded-lg text-white font-semibold shadow-lg hover:shadow-blue-500/30"
+                        >
+                            Sign Up
+                        </button>
+
+                    </form>
+
+                    <p className="text-gray-400 text-center text-sm mt-5" onClick={() => navigate('/login')}>
+                        Already have an account?{" "}
+                        <span className="text-blue-400 cursor-pointer hover:underline">Login</span>
+                    </p>
+
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default Register;
