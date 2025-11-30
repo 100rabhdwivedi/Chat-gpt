@@ -26,7 +26,7 @@ const Register = () => {
         } catch (err) {
             console.log(err);
             
-            const message = err?.response?.data?.message || "somenthing went wrong"
+            const message = err?.response?.data?.mesage || "somenthing went wrong"
             toast.error(message)
         }
     };
